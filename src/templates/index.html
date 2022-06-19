@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-2"></div>
+        <div class="col-md-8">
+            <form method="post" action="{{url_for('index_view')}}">
+            <div class="form-floating mb-3">
+                <input type="text" name="url" id="url"
+                    placeholder="Enter URL" class="form-control"
+                    value="{{ request.form['url'] }}" autofocus>
+                <label for="url">URL</label>
+            </div>
+
+            <div class="form-group text-center">
+                <button type="submit" class="btn btn-lg btn-primary">Send</button>
+            </div>
+            </form>
+
+            {% if short_url %}
+                <hr>
+                <span><a href="{{ short_url }}" target="_blank">{{ short_url }}</a></span>
+                <p>Views amount: {{ views_amount }}</p>
+            {% endif %}
+        </div>
+        <div class="col-md-2"></div>
+    </div>
+{% endblock %}
