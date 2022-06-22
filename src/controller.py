@@ -1,4 +1,5 @@
-from src.utils.database import get_db_connection
+from src import db
+from src.models import Link
 from src.utils.random_string import generate_random_string
 
 
@@ -12,62 +13,38 @@ def upsert_link(original_url):
     :param original_url: string
     :return: string, int
     """
-    connection = get_db_connection()
-
-    short_id, views_amount = _get_shortened_link_info(original_url, connection)
+    short_id, views_amount = _get_shortened_link_info(original_url)
     if short_id:
         return short_id, views_amount
 
     while short_id is None:
         new_short_id = generate_random_string()
-        search_query = """
-            select * from links 
-            where short_id=?
-            limit 1;
-        """
-        res = connection.execute(search_query, (new_short_id,)).fetchone()
-        if not res:
+        link_info = Link.query.filter_by(short_id=new_short_id).first()
+        if not link_info:
             short_id = new_short_id
 
-    insert_query = 'insert into links (original_url, short_id, views_amount) values (?, ?, 0)'
-    connection.execute(insert_query, (original_url, short_id))
-    connection.commit()
-    connection.close()
+    new_link = Link(original_url, short_id, 0)
+    db.session.add(new_link)
+    db.session.commit()
 
     return short_id, 0
 
 
-def _get_shortened_link_info(original_url, connection):
-    search_query = """
-        select short_id, views_amount from links 
-        where original_url=?
-        limit 1;
-    """
-    res = connection.execute(search_query, (original_url,)).fetchone()
-    if res:
-        return res["short_id"], res["views_amount"]
+def _get_shortened_link_info(original_url):
+    link_info = Link.query.filter_by(original_url=original_url).first()
+    if link_info:
+        return link_info.short_id, link_info.views_amount
 
     return None, None
 
 
 def process_redirect(short_id):
-    connection = get_db_connection()
+    link_info = Link.query.filter_by(short_id=short_id).first()
 
-    search_query = """
-        select original_url from links 
-        where short_id=?
-        limit 1;
-    """
-    res = connection.execute(search_query, (short_id,)).fetchone()
-    if res:
-        increment_query = """
-            update links set views_amount = views_amount + 1
-            where short_id=?
-        """
-        connection.execute(increment_query, (short_id,))
-        connection.commit()
-        connection.close()
+    if link_info:
+        link_info.views_amount += 1
+        db.session.commit()
 
-        return res["original_url"]
+        return link_info.original_url
 
     return None

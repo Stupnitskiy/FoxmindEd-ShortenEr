@@ -2,7 +2,7 @@
 import os
 
 from src import app
-from src import views
+from src import views, models
 
 os.environ["FLASK_ENV"] = 'development'
 

@@ -9,7 +9,6 @@ from src.controller import upsert_link, process_redirect
 class IndexView(MethodView):
     @staticmethod
     def get():
-
         return render_template('index.html')
 
     @staticmethod
