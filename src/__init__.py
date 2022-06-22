@@ -14,3 +14,5 @@ app.secret_key = os.urandom(24)
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
+
+from src import views, models

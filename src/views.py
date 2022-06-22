@@ -13,7 +13,7 @@ class IndexView(MethodView):
 
     @staticmethod
     def post():
-        url = request.form['url']
+        url = request.form.get('url')
 
         if not url:
             flash('The URL is required!')
